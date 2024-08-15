@@ -1,0 +1,43 @@
+name: xlocker_3
+description: "A new Flutter project."
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^1.0.3
+  cupertino_icons: ^1.0.8
+  thingsboard_pe_client: ^1.2.1
+  http: ^0.13.4
+  provider: ^6.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/x_camp_logo.png
+    - assets/profile_image.png
+    - assets/x_camp_splashscreen.png
+    - assets/teks_smartlocker.png
+    - assets/bg_atas.png
+    - assets/bg_bawah.png
+
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: fonts/Poppins-Medium.ttf
+        - asset: fonts/Poppins-SemiBold.ttf
+        - asset: fonts/Poppins-Bold.ttf
+        - asset: fonts/Poppins-ExtraBold.ttf
+
+
