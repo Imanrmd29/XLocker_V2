@@ -47,6 +47,20 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
+          // Tombol logout
+          Positioned(
+            top: 20, // Jarak dari atas
+            right: 1, // Jarak dari kanan
+            child: IconButton(
+              icon: const Icon(Icons.logout),
+              color: Colors.white, // Warna ikon
+              iconSize: 30, // Ukuran ikon
+              onPressed: () {
+                // Navigasi ke halaman login
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+            ),
+          ),
           // Container untuk ikon profil, teks nama, dan teks tambahan
           Positioned(
             top: 100, // Jarak dari atas, dapat diatur
