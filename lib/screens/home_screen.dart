@@ -3,6 +3,42 @@ import 'package:flutter/material.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+   void _showLoadingIndicator(BuildContext context) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        child: Container(
+          color: Colors.white70,
+          child: const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF0620C2),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    // Simulating a delay for demonstration purposes
+    Future.delayed(const Duration(seconds: 1), () {
+      overlayEntry.remove();
+    });
+  }
+
+  void _handleLogout(BuildContext context) {
+    _showLoadingIndicator(context);
+
+    Future.delayed(const Duration(seconds: 1), () {
+      // ignore: use_build_context_synchronously
+      Navigator.pushReplacementNamed(context, '/login');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,15 +86,14 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           // Tombol menu
-          Positioned(
+           Positioned(
             top: 30, // Jarak dari atas
             right: 5, // Jarak dari kanan
             child: PopupMenuButton<String>(
               icon: const Icon(Icons.menu, color: Colors.white, size: 30),
               onSelected: (value) {
                 if (value == 'logout') {
-                  // Navigasi ke halaman login
-                  Navigator.pushReplacementNamed(context, '/login');
+                  _handleLogout(context);
                 }
               },
               itemBuilder: (context) => [

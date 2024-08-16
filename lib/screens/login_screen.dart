@@ -29,6 +29,34 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _showLoadingIndicator(BuildContext context) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        child: Container(
+          color: Colors.white,
+          child: const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF0620C2),
+            
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    // Simulasi delay untuk menghapus indikator loading
+    Future.delayed(const Duration(seconds: 1), () {
+      overlayEntry.remove();
+    });
+  }
+
   Future<void> _login() async {
     String email = _emailController.text;
     String password = _passwordController.text;
@@ -43,6 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
+      _showLoadingIndicator(context);
+
       final response = await http.post(
         Uri.parse('https://thingsboard.cloud/api/auth/login'),
         headers: {'Content-Type': 'application/json'},
@@ -54,15 +84,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) {
         if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Login berhasil!'),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              width: 140,
-            ),
-          );
-          Navigator.pushReplacementNamed(context, '/home');
+          // Menghapus indikator loading sebelum navigasi
+          Navigator.of(context).pushReplacementNamed('/home');
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -137,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: const Icon(Icons.email),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
-                          color: _isEmailValid ? Colors.blue : Colors.red,
+                          color: _isEmailValid ? const Color(0xFF0620C2) : Colors.red,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
@@ -172,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
-                          color: _isPasswordValid ? Colors.blue : Colors.red,
+                          color: _isPasswordValid ? const Color(0xFF0620C2) : Colors.red,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
