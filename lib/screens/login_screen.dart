@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +20,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscureText = true;
   bool _isEmailValid = true;
   bool _isPasswordValid = true;
+  bool _isLoading = false;
+  late OverlayEntry _overlayEntry;
 
   @override
   void dispose() {
@@ -29,32 +32,29 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _showLoadingIndicator(BuildContext context) {
-    final overlay = Overlay.of(context);
-    final overlayEntry = OverlayEntry(
+  void _showLoadingIndicator() {
+    _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         left: 0,
         right: 0,
         top: 0,
         bottom: 0,
         child: Container(
-          color: Colors.white,
+          color: Colors.white, // Background gelap dengan transparansi
           child: const Center(
             child: CircularProgressIndicator(
               color: Color(0xFF0620C2),
-            
             ),
           ),
         ),
       ),
     );
 
-    overlay.insert(overlayEntry);
+    Overlay.of(context).insert(_overlayEntry);
+  }
 
-    // Simulasi delay untuk menghapus indikator loading
-    Future.delayed(const Duration(seconds: 1), () {
-      overlayEntry.remove();
-    });
+  void _hideLoadingIndicator() {
+    _overlayEntry.remove();
   }
 
   Future<void> _login() async {
@@ -67,11 +67,21 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (!_isEmailValid || !_isPasswordValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email dan kata sandi tidak boleh kosong.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
 
     try {
-      _showLoadingIndicator(context);
+      setState(() {
+        _isLoading = true;
+      });
+      _showLoadingIndicator();
 
       final response = await http.post(
         Uri.parse('https://thingsboard.cloud/api/auth/login'),
@@ -82,49 +92,54 @@ class _LoginScreenState extends State<LoginScreen> {
         }),
       );
 
-      if (mounted) {
-        if (response.statusCode == 200) {
-          // Menghapus indikator loading sebelum navigasi
-          Navigator.of(context).pushReplacementNamed('/home');
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Login gagal! Periksa email dan kata sandi Anda.'),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.all(90),
-            ),
-          );
-          setState(() {
-            _isEmailValid = false;
-            _isPasswordValid = false;
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
+      if (response.statusCode == 200) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true); // Simpan status login
+
+        // ignore: use_build_context_synchronously
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
+          const SnackBar(
+            content: Text('Login gagal! Periksa email dan kata sandi Anda.'),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
           ),
         );
+        setState(() {
+          _isEmailValid = false;
+          _isPasswordValid = false;
+        });
       }
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (_isLoading) {
+        _hideLoadingIndicator();
+      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 0),
-            Padding(
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 50.0),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -228,8 +243,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          if (_isLoading)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Color(0xFF0620C2),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 20.0),

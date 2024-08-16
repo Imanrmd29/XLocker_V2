@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-   void _showLoadingIndicator(BuildContext context) {
+  void _showLoadingIndicator(BuildContext context) {
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -12,7 +13,7 @@ class HomeScreen extends StatelessWidget {
         top: 0,
         bottom: 0,
         child: Container(
-          color: Colors.white70,
+          color: Colors.white, // Background gelap dengan transparansi
           child: const Center(
             child: CircularProgressIndicator(
               color: Color(0xFF0620C2),
@@ -24,18 +25,34 @@ class HomeScreen extends StatelessWidget {
 
     overlay.insert(overlayEntry);
 
-    // Simulating a delay for demonstration purposes
-    Future.delayed(const Duration(seconds: 1), () {
+    // Menghapus overlay setelah 1 detik
+    Future.delayed(const Duration(seconds: 4), () {
       overlayEntry.remove();
     });
   }
 
-  void _handleLogout(BuildContext context) {
+  Future<void> _handleLogout(BuildContext context) async {
     _showLoadingIndicator(context);
 
-    Future.delayed(const Duration(seconds: 1), () {
+    await Future.delayed(const Duration(seconds: 1)); // Simulasi proses logout
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('isLoggedIn'); // Hapus status login
+
+    // Navigasi dan menampilkan Snackbar harus dilakukan setelah overlay dihapus
+    Future.delayed(const Duration(milliseconds: 100), () {
       // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/login');
+    
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logout Berhasil', textAlign: TextAlign.center),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          width: 180,
+        ),
+      );
     });
   }
 
@@ -86,7 +103,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           // Tombol menu
-           Positioned(
+          Positioned(
             top: 30, // Jarak dari atas
             right: 5, // Jarak dari kanan
             child: PopupMenuButton<String>(
@@ -101,20 +118,6 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-
-          //           Positioned(
-          //   top: 20, // Jarak dari atas
-          //   right: 1, // Jarak dari kanan
-          //   child: IconButton(
-          //     icon: const Icon(Icons.logout),
-          //     color: Colors.white, // Warna ikon
-          //     iconSize: 30, // Ukuran ikon
-          //     onPressed: () {
-          //       // Navigasi ke halaman login
-          //       Navigator.pushReplacementNamed(context, '/login');
-          //     },
-          //   ),
-          // ),
           // Profil dan nama
           Positioned(
             top: 52, // Jarak dari atas, dapat diatur
@@ -178,12 +181,12 @@ class HomeScreen extends StatelessWidget {
                   child: Text(
                     'Pilih nomor loker yang akan digunakan',
                     style: TextStyle(
-                      fontSize: 17, // Ukuran teks // Ketebalan teks
+                      fontSize: 17, // Ukuran teks
                       color: Colors.black, // Warna teks
                     ),
                   ),
-                ), 
-               // Jarak antara teks dan GridView
+                ),
+                // Jarak antara teks dan GridView
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 40.0),
                   height: MediaQuery.of(context).size.height * 0.80, // Sesuaikan tinggi
