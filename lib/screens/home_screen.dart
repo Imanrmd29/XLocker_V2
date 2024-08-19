@@ -202,67 +202,54 @@ class HomeScreen extends StatelessWidget {
                       final isLocked = (index + 1) % 5 == 0 ||
                           (index + 1) % 8 == 0 ||
                           (index + 1) % 14 == 0;
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              blurRadius: 3,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              height: 52,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: isLocked
-                                    ? const Color(0xFFC20606)
-                                    : const Color(0xFF0620C2),
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(12),
-                                ),
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: 52,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: isLocked
+                                  ? const Color(0xFFC20606)
+                                  : const Color(0xFF0620C2),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12),
                               ),
-                              child: Center(
-                                child: Text(
-                                  '${index + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            Container(
-                              height: 30,
-                              width: double.infinity,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFE1E1E1),
-                                borderRadius: BorderRadius.vertical(
-                                  bottom: Radius.circular(12),
-                                ),
+                          ),
+                          Container(
+                            height: 30,
+                            width: double.infinity,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFE1E1E1),
+                              borderRadius: BorderRadius.vertical(
+                                bottom: Radius.circular(12),
                               ),
-                              child: Center(
-                                child: Text(
-                                  isLocked ? 'Lock' : 'Unlock',
-                                  style: TextStyle(
-                                    color: isLocked
-                                        ? const Color(0xFFC20606)
-                                        : const Color(0xFF00CC9D),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                isLocked ? 'Lock' : 'Unlock',
+                                style: TextStyle(
+                                  color: isLocked
+                                      ? const Color(0xFFC20606)
+                                      : const Color(0xFF00CC9D),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       );
                     },
                   ),
