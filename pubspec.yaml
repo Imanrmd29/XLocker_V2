@@ -24,6 +24,7 @@ dependencies:
   get: ^4.6.6
   logging: ^1.0.2
   esp_smartconfig: ^2.0.4
+  flutter_bloc: ^8.1.6
 
 dev_dependencies:
   flutter_test:

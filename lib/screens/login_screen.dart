@@ -94,7 +94,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedIn', true); // Simpan status login
+        await prefs.setString('token', jsonDecode(response.body)['token']);
+        await prefs.setBool('isLoggedIn', true);
+        // Simpan status login
+
 
         // ignore: use_build_context_synchronously
         Navigator.of(context).pushReplacementNamed('/home');

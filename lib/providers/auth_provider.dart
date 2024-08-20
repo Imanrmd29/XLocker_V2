@@ -11,4 +11,5 @@ class AuthProvider with ChangeNotifier {
     _user = await ApiService().login(username, password);
     notifyListeners();
   }
+  
 }

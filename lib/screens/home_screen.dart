@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xlocker_3/services/api_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final ApiService apiService = ApiService();
+  List<bool> _isClicked = List<bool>.filled(18, false); // Menyimpan status klik untuk setiap item
 
   void _showLoadingIndicator(BuildContext context) {
     final overlay = Overlay.of(context);
@@ -13,7 +22,7 @@ class HomeScreen extends StatelessWidget {
         top: 0,
         bottom: 0,
         child: Container(
-          color: Colors.white, // Background gelap dengan transparansi
+          color: Colors.white,
           child: const Center(
             child: CircularProgressIndicator(
               color: Color(0xFF0620C2),
@@ -25,7 +34,6 @@ class HomeScreen extends StatelessWidget {
 
     overlay.insert(overlayEntry);
 
-    // Menghapus overlay setelah 1 detik
     Future.delayed(const Duration(seconds: 4), () {
       overlayEntry.remove();
     });
@@ -34,17 +42,14 @@ class HomeScreen extends StatelessWidget {
   Future<void> _handleLogout(BuildContext context) async {
     _showLoadingIndicator(context);
 
-    await Future.delayed(const Duration(seconds: 1)); // Simulasi proses logout
+    await Future.delayed(const Duration(seconds: 1));
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('isLoggedIn'); // Hapus status login
+    await prefs.remove('isLoggedIn');
 
-    // Navigasi dan menampilkan Snackbar harus dilakukan setelah overlay dihapus
     Future.delayed(const Duration(milliseconds: 100), () {
-      // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/login');
-    
-      // ignore: use_build_context_synchronously
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Logout Berhasil', textAlign: TextAlign.center),
@@ -56,38 +61,64 @@ class HomeScreen extends StatelessWidget {
     });
   }
 
+  Future<void> _handleGridItemTap(int index) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString("token");
+
+      if (token != null) {
+        await apiService.postRPC(
+          token,
+          'deviceId', // Ganti dengan deviceId yang benar jika ada
+          'setRelay${index + 1}',
+          true,
+        );
+
+        setState(() {
+          _isClicked[index] = !_isClicked[index]; // Toggle status klik
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                _isClicked[index] ? 'Loker ${index + 1} Dibuka' : 'Loker ${index + 1} Ditutup'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengirim RPC: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Background biru
           Container(
             decoration: const BoxDecoration(
-              color: Color(0xFF0620C2), // Warna biru background
+              color: Color(0xFF0620C2),
             ),
             height: MediaQuery.of(context).size.height,
           ),
-          // Gambar di dalam background biru, rata kanan kiri, top center
           Align(
             alignment: Alignment.topCenter,
             child: Container(
-              margin: const EdgeInsets.only(top: 32), // Jarak dari atas
-              width: double.infinity, // Lebar penuh
-              height: MediaQuery.of(context).size.height * 0.15, // Tinggi gambar, bisa disesuaikan
+              margin: const EdgeInsets.only(top: 32),
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.15,
               decoration: BoxDecoration(
                 image: const DecorationImage(
-                  image: AssetImage('assets/bg_atas.png'), // Path gambar sesuai dengan asset
+                  image: AssetImage('assets/bg_atas.png'),
                   fit: BoxFit.cover,
                 ),
-                color: Colors.white.withOpacity(0.3), // Opacity gambar
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(0), // Rounded corners di bawah
-                ),
+                color: Colors.white.withOpacity(0.3),
               ),
             ),
           ),
-          // Background putih dengan rounded corner di bawah
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -102,10 +133,9 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Tombol menu
           Positioned(
-            top: 30, // Jarak dari atas
-            right: 5, // Jarak dari kanan
+            top: 30,
+            right: 5,
             child: PopupMenuButton<String>(
               icon: const Icon(Icons.menu, color: Colors.white, size: 30),
               onSelected: (value) {
@@ -118,60 +148,54 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          // Profil dan nama
           Positioned(
-            top: 52, // Jarak dari atas, dapat diatur
-            left: 38, // Jarak dari kiri
+            top: 52,
+            left: 38,
             right: 30,
             child: Row(
               children: [
-                // Ikon profil dengan kotak rounded
                 Container(
-                  width: 50, // Lebar kotak
-                  height: 50, // Tinggi kotak
+                  width: 50,
+                  height: 50,
                   decoration: BoxDecoration(
-                    color: Colors.white, // Warna kotak
-                    borderRadius: BorderRadius.circular(12), // Rounded corners
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF0620C2).withOpacity(0.9),
                         blurRadius: 2,
-                        offset: const Offset(0, 2), // Posisi bayangan
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
                   child: const Center(
                     child: Icon(
-                      Icons.person, // Ikon profil
-                      color: Colors.blue, // Warna ikon
-                      size: 30, // Ukuran ikon
+                      Icons.person,
+                      color: Colors.blue,
+                      size: 30,
                     ),
                   ),
                 ),
-                const SizedBox(
-                    width: 10), // Jarak antara ikon profil dan teks nama
-                // Teks nama dengan tata letak yang dapat disesuaikan
+                const SizedBox(width: 10),
                 const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Teks nama
                     Text(
-                      'King Salman bin Khaleed', // Ganti dengan nama yang sesuai
+                      'King Salman bin Khaleed',
                       style: TextStyle(
-                        fontSize: 17, // Ukuran teks
-                        fontWeight: FontWeight.bold, // Ketebalan teks
-                        color: Colors.white, // Warna teks
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 0), // Jarak antara nama dan teks tambahan
+                    SizedBox(height: 0),
                   ],
                 ),
               ],
             ),
           ),
-          // Teks tengah dan GridView
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.18, // Sesuaikan posisi
+            top: MediaQuery.of(context).size.height * 0.18,
             left: 0,
             right: 0,
             child: Column(
@@ -181,82 +205,82 @@ class HomeScreen extends StatelessWidget {
                   child: Text(
                     'Pilih nomor loker yang akan digunakan',
                     style: TextStyle(
-                      fontSize: 17, // Ukuran teks
-                      color: Colors.black, // Warna teks
+                      fontSize: 17,
+                      color: Colors.black,
                     ),
                   ),
                 ),
-                // Jarak antara teks dan GridView
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                  height: MediaQuery.of(context).size.height * 0.80, // Sesuaikan tinggi
+                  height: MediaQuery.of(context).size.height * 0.80,
                   child: GridView.builder(
                     itemCount: 18,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
                       mainAxisSpacing: 20,
                       crossAxisSpacing: 35,
                       childAspectRatio: 1,
                     ),
                     itemBuilder: (context, index) {
-                      final isLocked = (index + 1) % 5 == 0 ||
-                          (index + 1) % 8 == 0 ||
-                          (index + 1) % 14 == 0;
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 52,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: isLocked
-                                  ? const Color(0xFFC20606)
-                                  : const Color(0xFF0620C2),
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(12),
+                      return GestureDetector(
+                        onTap: () => _handleGridItemTap(index),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              height: 52,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: _isClicked[index]
+                                    ? const Color(0xFFC20606) // Warna merah jika diklik
+                                    : const Color(0xFF0620C2), // Warna biru jika tidak
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(12),
+                                ),
                               ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${index + 1}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.bold,
+                              child: Center(
+                                child: Text(
+                                  '${index + 1}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 25,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          Container(
-                            height: 30,
-                            width: double.infinity,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFE1E1E1),
-                              borderRadius: BorderRadius.vertical(
-                                bottom: Radius.circular(12),
+                            Container(
+                              height: 30,
+                              width: double.infinity,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFE1E1E1),
+                                borderRadius: BorderRadius.vertical(
+                                  bottom: Radius.circular(12),
+                                ),
                               ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                isLocked ? 'Lock' : 'Unlock',
-                                style: TextStyle(
-                                  color: isLocked
-                                      ? const Color(0xFFC20606)
-                                      : const Color(0xFF00CC9D),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                              child: Center(
+                                child: Text(
+                                  _isClicked[index] ? 'Lock' : 'Unlock',
+                                  style: TextStyle(
+                                    color: _isClicked[index]
+                                        ? const Color(0xFFC20606)
+                                        : const Color(0xFF00CC9D),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   ),
                 ),
               ],
             ),
-          ),
+          )
         ],
       ),
     );
