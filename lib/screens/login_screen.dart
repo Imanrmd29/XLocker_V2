@@ -41,11 +41,24 @@ class _LoginScreenState extends State<LoginScreen> {
         bottom: 0,
         child: Container(
           color: Colors.white, // Background gelap dengan transparansi
-          child: const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF0620C2),
+          child: Center(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Image.asset(
+              'assets/x_camp_logo.png',
+              width: 120,
+              height: 120,
             ),
-          ),
+          
+            const SizedBox(
+              height: 5,
+              width: 110,
+              child: LinearProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0620C2)),
+                backgroundColor: Color.fromARGB(255, 255, 196, 0),
+                minHeight: 3.0, // Mengubah ketebalan indikator
+              ),
+            ),
+          ])),
         ),
       ),
     );
@@ -97,7 +110,6 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('token', jsonDecode(response.body)['token']);
         await prefs.setBool('isLoggedIn', true);
         // Simpan status login
-
 
         // ignore: use_build_context_synchronously
         Navigator.of(context).pushReplacementNamed('/home');
@@ -178,7 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: const Icon(Icons.email),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
-                          color: _isEmailValid ? const Color(0xFF0620C2) : Colors.red,
+                          color: _isEmailValid
+                              ? const Color(0xFF0620C2)
+                              : Colors.red,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
@@ -203,7 +217,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureText ? Icons.visibility : Icons.visibility_off,
+                          _obscureText
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                         ),
                         onPressed: () {
                           setState(() {
@@ -213,7 +229,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
-                          color: _isPasswordValid ? const Color(0xFF0620C2) : Colors.red,
+                          color: _isPasswordValid
+                              ? const Color(0xFF0620C2)
+                              : Colors.red,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(

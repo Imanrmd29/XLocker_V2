@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xlocker_3/models/telemetry.dart';
 import 'package:xlocker_3/models/user.dart';
 
 class ApiService {
@@ -44,7 +46,40 @@ class ApiService {
       throw Exception('Gagal mengirim RPC command: ${response.body}');
     }
   }
+
+Future<List<Telemetry>> fetchLatestTimeseries() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString("token");
+
+  if (token == null) {
+    throw Exception("Token tidak ditemukan");
+  }
+
+  final response = await http.get(
+    Uri.parse('$baseUrl/plugins/telemetry/DEVICE/1295bb70-1332-11ef-ba49-7338e27601c4/values/timeseries'),
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    List<Telemetry> telemetryData = [];
+    data.forEach((key, value) {
+      if (value is List) {
+        for (var item in value) {
+          telemetryData.add(Telemetry.fromJson(item));
+        }
+      }
+    });
+
+    return telemetryData;
+  } else {
+    throw Exception('Gagal mengambil data: ${response.statusCode}');
+  }
 }
+
 
   // Future<User?> postRPC(
   //     String token, String deviceId, Bool params, String method) async {
@@ -59,4 +94,4 @@ class ApiService {
   //     throw Exception('Failed to Post RPC');
   //   }
   // }
-
+}

@@ -42,7 +42,7 @@ class XLocker extends StatelessWidget {
       routes: {
         '/' : (context) => const SplashScreen(),
         '/login' : (context) => const LoginScreen(),
-        '/home' : (context) => HomeScreen(),
+        '/home' : (context) => const HomeScreen(),
       },
       // Handler untuk mengganti status login saat logout
       onGenerateRoute: (settings) {

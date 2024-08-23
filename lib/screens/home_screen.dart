@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xlocker_3/services/api_service.dart';
+import 'package:xlocker_3/models/telemetry.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,7 +12,46 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService apiService = ApiService();
-  List<bool> _isClicked = List<bool>.filled(18, false); // Menyimpan status klik untuk setiap item
+  final List<bool> _isClicked = List<bool>.filled(18, false);
+  final List<bool> _isRed =
+      List<bool>.filled(18, false); // Menyimpan status klik untuk setiap item
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAndUpdateGridStatus();
+  }
+
+Future<void> _fetchAndUpdateGridStatus() async {
+  try {
+    List<Telemetry> telemetryData = await apiService.fetchLatestTimeseries();
+
+    if (mounted) { // Memeriksa apakah widget masih ada di tree
+      for (int i = 0; i < telemetryData.length; i++) {
+        if (i < _isRed.length) { // Memeriksa apakah indeks berada dalam rentang yang valid
+          // ignore: unrelated_type_equality_checks
+          if (telemetryData[i].value == "1") { // Memastikan perbandingan sesuai tipe data
+            setState(() {
+              _isRed[i] = true;
+              _isClicked[i] = true; // Nonaktifkan klik jika nilainya 1
+            });
+          }
+        }
+      }
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memuat data telemetri: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+}
+
 
   void _showLoadingIndicator(BuildContext context) {
     final overlay = Overlay.of(context);
@@ -23,9 +63,22 @@ class _HomeScreenState extends State<HomeScreen> {
         bottom: 0,
         child: Container(
           color: Colors.white,
-          child: const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF0620C2),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/x_camp_logo.png', // Ganti dengan path gambar Anda
+                  width: 100,
+                  height: 100,
+                ),
+                const SizedBox(height: 15),
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      Color.fromARGB(52, 0, 0, 0)),
+                  strokeWidth: 4.0, // Mengubah ketebalan indikator
+                ),
+              ],
             ),
           ),
         ),
@@ -62,33 +115,49 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleGridItemTap(int index) async {
+    if (_isRed[index]) return; // Jangan izinkan klik jika sudah merah
+
     try {
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString("token");
 
       if (token != null) {
+        // Mengambil status klik saat ini
+        bool currentStatus = _isClicked[index];
+
+        // Mengirimkan RPC dengan status yang berlawanan dari status saat ini
         await apiService.postRPC(
           token,
           'deviceId', // Ganti dengan deviceId yang benar jika ada
           'setRelay${index + 1}',
-          true,
+          !currentStatus, // Toggle status: jika saat ini true, kirim false, dan sebaliknya
         );
 
+        // Memperbarui status klik
         setState(() {
-          _isClicked[index] = !_isClicked[index]; // Toggle status klik
+          _isClicked[index] = true; // Tandai sudah diklik
+          _isRed[index] = true; // Ubah menjadi merah
         });
 
+        // Tampilkan pesan sukses berdasarkan status terkini
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                _isClicked[index] ? 'Loker ${index + 1} Dibuka' : 'Loker ${index + 1} Ditutup'),
+            content:
+                Text('Loker ${index + 1} Dibuka', textAlign: TextAlign.center),
             backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            elevation: 10,
           ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengirim RPC: $e')),
+        SnackBar(
+          content: Text('Gagal mengirim RPC: $e', textAlign: TextAlign.center),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          elevation: 10,
+        ),
       );
     }
   }
@@ -107,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Align(
             alignment: Alignment.topCenter,
             child: Container(
-              margin: const EdgeInsets.only(top: 32),
+              margin: const EdgeInsets.only(top: 25),
               width: double.infinity,
               height: MediaQuery.of(context).size.height * 0.15,
               decoration: BoxDecoration(
@@ -224,7 +293,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     itemBuilder: (context, index) {
                       return GestureDetector(
-                        onTap: () => _handleGridItemTap(index),
+                        onTap: _isRed[index] || _isClicked[index]
+                            ? null
+                            : () => _handleGridItemTap(index),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -233,8 +304,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: double.infinity,
                               decoration: BoxDecoration(
                                 color: _isClicked[index]
-                                    ? const Color(0xFFC20606) // Warna merah jika diklik
-                                    : const Color(0xFF0620C2), // Warna biru jika tidak
+                                    ? const Color(0xFFC20606)
+                                    : const Color(0xFF0620C2),
                                 borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(12),
                                 ),
@@ -254,14 +325,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               height: 30,
                               width: double.infinity,
                               decoration: const BoxDecoration(
-                                color: Color(0xFFE1E1E1),
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color.fromARGB(52, 0, 0, 0),
+                                    offset: Offset.zero,
+                                    blurRadius: 0.5,
+                                    spreadRadius: 0.5,
+                                  ),
+                                ],
                                 borderRadius: BorderRadius.vertical(
                                   bottom: Radius.circular(12),
                                 ),
                               ),
                               child: Center(
                                 child: Text(
-                                  _isClicked[index] ? 'Lock' : 'Unlock',
+                                  _isClicked[index] ? 'Terisi' : 'Kosong',
                                   style: TextStyle(
                                     color: _isClicked[index]
                                         ? const Color(0xFFC20606)
