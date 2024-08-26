@@ -27,7 +27,7 @@ class ApiService {
     }
   }
 
-  Future<void> postRPC(String deviceId, String method, bool params, bool bool) async {
+  Future<void> postRPC(token, String deviceId, String method, bool params) async {
     final prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
 

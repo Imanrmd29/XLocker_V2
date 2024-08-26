@@ -15,7 +15,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService apiService = ApiService();
   final List<bool> _isClicked = List<bool>.filled(18, false);
-  final List<bool> _isRed = List<bool>.filled(18, false); // Menyimpan status klik untuk setiap item
+  final List<bool> _isRed =
+      List<bool>.filled(18, false); // Menyimpan status klik untuk setiap item
   Timer? _timer;
 
   @override
@@ -65,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   void _showLoadingIndicator(BuildContext context) {
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(
@@ -85,11 +85,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 100,
                   height: 100,
                 ),
-                const SizedBox(height: 15),
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                      Color.fromARGB(52, 0, 0, 0)),
-                  strokeWidth: 4.0, // Mengubah ketebalan indikator
+                const SizedBox(
+                  height: 5,
+                  width: 110,
+                  child: LinearProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Color(0xFF0620C2)),
+                    backgroundColor: Color.fromARGB(255, 255, 196, 0),
+                    minHeight: 3.0, // Mengubah ketebalan indikator
+                  ),
                 ),
               ],
             ),
@@ -142,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
         await apiService.postRPC(
           token,
           'deviceId', // Ganti dengan deviceId yang benar jika ada
-          'setRelay${index + 1}' as bool,
+          'setRelay${index + 1}',
           !currentStatus, // Toggle status: jika saat ini true, kirim false, dan sebaliknya
         );
 
