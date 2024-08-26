@@ -49,6 +49,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 _isRed[i] = true;
                 _isClicked[i] = true; // Nonaktifkan klik jika nilainya 1
               });
+              
+            }
+            else {
+              setState(() {
+                _isRed[i] = false;
+                _isClicked[i] = false; // Nonaktifkan klik jika nilainya 1
+              });
             }
           }
         }
