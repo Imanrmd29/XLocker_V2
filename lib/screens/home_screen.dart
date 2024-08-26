@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xlocker_3/services/api_service.dart';
@@ -13,44 +15,55 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService apiService = ApiService();
   final List<bool> _isClicked = List<bool>.filled(18, false);
-  final List<bool> _isRed =
-      List<bool>.filled(18, false); // Menyimpan status klik untuk setiap item
+  final List<bool> _isRed = List<bool>.filled(18, false); // Menyimpan status klik untuk setiap item
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _fetchAndUpdateGridStatus();
+    _startFetchingData();
   }
 
-Future<void> _fetchAndUpdateGridStatus() async {
-  try {
-    List<Telemetry> telemetryData = await apiService.fetchLatestTimeseries();
+  @override
+  void dispose() {
+    _timer?.cancel(); // Batalkan timer saat widget tidak lagi digunakan
+    super.dispose();
+  }
 
-    if (mounted) { // Memeriksa apakah widget masih ada di tree
-      for (int i = 0; i < telemetryData.length; i++) {
-        if (i < _isRed.length) { // Memeriksa apakah indeks berada dalam rentang yang valid
-          // ignore: unrelated_type_equality_checks
-          if (telemetryData[i].value == "1") { // Memastikan perbandingan sesuai tipe data
-            setState(() {
-              _isRed[i] = true;
-              _isClicked[i] = true; // Nonaktifkan klik jika nilainya 1
-            });
+  void _startFetchingData() {
+    _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      _fetchAndUpdateGridStatus();
+    });
+  }
+
+  Future<void> _fetchAndUpdateGridStatus() async {
+    try {
+      List<Telemetry> telemetryData = await apiService.fetchLatestTimeseries();
+
+      if (mounted) {
+        for (int i = 0; i < telemetryData.length; i++) {
+          if (i < _isRed.length) {
+            if (telemetryData[i].value == "1") {
+              setState(() {
+                _isRed[i] = true;
+                _isClicked[i] = true; // Nonaktifkan klik jika nilainya 1
+              });
+            }
           }
         }
       }
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal memuat data telemetri: $e'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat data telemetri: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
-}
 
 
   void _showLoadingIndicator(BuildContext context) {
@@ -129,7 +142,7 @@ Future<void> _fetchAndUpdateGridStatus() async {
         await apiService.postRPC(
           token,
           'deviceId', // Ganti dengan deviceId yang benar jika ada
-          'setRelay${index + 1}',
+          'setRelay${index + 1}' as bool,
           !currentStatus, // Toggle status: jika saat ini true, kirim false, dan sebaliknya
         );
 

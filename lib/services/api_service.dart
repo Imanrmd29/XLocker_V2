@@ -8,6 +8,11 @@ import 'package:xlocker_3/models/user.dart';
 class ApiService {
   final String baseUrl = "https://thingsboard.cloud/api";
 
+  // StreamController untuk mengirim data telemetry secara real-time
+  final StreamController<List<Telemetry>> _telemetryStreamController = StreamController<List<Telemetry>>.broadcast();
+
+  Stream<List<Telemetry>> get telemetryStream => _telemetryStreamController.stream;
+
   Future<User?> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/login'),
@@ -22,12 +27,14 @@ class ApiService {
     }
   }
 
-  Future<void> postRPC(
-    String token,
-    String deviceId,
-    String method,
-    bool params,
-  ) async {
+  Future<void> postRPC(String deviceId, String method, bool params, bool bool) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
+
+    if (token == null) {
+      throw Exception("Token tidak ditemukan");
+    }
+
     final response = await http.post(
       Uri.parse('$baseUrl/rpc/oneway/1295bb70-1332-11ef-ba49-7338e27601c4'),
       headers: {
@@ -47,51 +54,41 @@ class ApiService {
     }
   }
 
-Future<List<Telemetry>> fetchLatestTimeseries() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString("token");
+  Future<List<Telemetry>> fetchLatestTimeseries() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
 
-  if (token == null) {
-    throw Exception("Token tidak ditemukan");
-  }
+    if (token == null) {
+      throw Exception("Token tidak ditemukan");
+    }
 
-  final response = await http.get(
-    Uri.parse('$baseUrl/plugins/telemetry/DEVICE/1295bb70-1332-11ef-ba49-7338e27601c4/values/timeseries'),
-    headers: {
-      'Authorization': 'Bearer $token',
-    },
-  );
+    final response = await http.get(
+      Uri.parse('$baseUrl/plugins/telemetry/DEVICE/1295bb70-1332-11ef-ba49-7338e27601c4/values/timeseries'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
 
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      List<Telemetry> telemetryData = [];
 
-    List<Telemetry> telemetryData = [];
-    data.forEach((key, value) {
-      if (value is List) {
-        for (var item in value) {
-          telemetryData.add(Telemetry.fromJson(item));
+      data.forEach((key, value) {
+        if (value is List) {
+          for (var item in value) {
+            telemetryData.add(Telemetry.fromJson(item));
+          }
         }
-      }
-    });
-
-    return telemetryData;
-  } else {
-    throw Exception('Gagal mengambil data: ${response.statusCode}');
+      });
+      _telemetryStreamController.add(telemetryData);
+      return telemetryData;
+    } else {
+      throw Exception('Gagal mengambil data: ${response.statusCode}');
+    }
   }
-}
 
-
-  // Future<User?> postRPC(
-  //     String token, String deviceId, Bool params, String method) async {
-  //   final response = await http.post(
-  //     Uri.parse('$baseUrl/rpc/oneway/1295bb70-1332-11ef-ba49-7338e27601c4'),
-  //     headers: {'Authorization': 'Bearer $token'},
-  //   );
-
-  //   if (response.statusCode == 200) {
-  //     return User.fromJson(jsonDecode(response.body));
-  //   } else {
-  //     throw Exception('Failed to Post RPC');
-  //   }
-  // }
+  // Jangan lupa untuk menutup StreamController saat tidak digunakan lagi
+  void dispose() {
+    _telemetryStreamController.close();
+  }
 }
