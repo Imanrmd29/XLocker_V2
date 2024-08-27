@@ -281,8 +281,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Positioned(
-                top: 110, // Adjust as needed
-                left: 125, // Adjust as needed
+                top: 105, // Adjust as needed
+                left: 130, // Adjust as needed
                 // right: 20, // Adjust as needed
                 child: Container(
                   alignment: Alignment.center,
@@ -316,29 +316,31 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Positioned(
             top: 90,
-            left: 70,
-            // right: 30,
+            left: 65,
             child: Row(
               children: [
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 57,
+                  height: 60,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF0620C2), // Warna stroke (border)
+                      width: 2, // Ketebalan stroke (border)
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0620C2).withOpacity(0.9),
+                        color: Colors.grey.withOpacity(0.5),
                         blurRadius: 2,
-                        offset: const Offset(0, 2),
+                        offset: const Offset(0, 5),
                       ),
                     ],
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.person,
-                      color: Colors.blue,
-                      size: 30,
+                    image: const DecorationImage(
+                      image: NetworkImage(
+                        'https://your-image-url.com', // Ganti dengan URL image profile
+                      ),
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
