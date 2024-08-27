@@ -49,9 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _isRed[i] = true;
                 _isClicked[i] = true; // Nonaktifkan klik jika nilainya 1
               });
-              
-            }
-            else {
+            } else {
               setState(() {
                 _isRed[i] = false;
                 _isClicked[i] = false; // Nonaktifkan klik jika nilainya 1
@@ -64,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memuat data telemetri: $e'),
+            content: Text('Tidak terhubung dengan Database: $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -163,16 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _isRed[index] = true; // Ubah menjadi merah
         });
 
-        // Tampilkan pesan sukses berdasarkan status terkini
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Loker ${index + 1} Dibuka', textAlign: TextAlign.center),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            elevation: 10,
-          ),
-        );
+        // Tampilkan AlertDialog
+        _showTimedAlertDialog(context, '${index + 1}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -186,45 +176,128 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _showTimedAlertDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // Menutup dialog setelah 3 detik
+        Future.delayed(const Duration(seconds: 3), () {
+          Navigator.of(context).pop(true);
+        });
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0), // Sudut melengkung
+          ),
+          title: const Center(
+            child: Text(
+              'Nomor loker yang dipilih',
+              style: TextStyle(
+                fontSize: 18, // Ukuran font untuk judul
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ),
+          content: Container(
+            width: double.maxFinite,
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Colors
+                  .grey[300], // Warna latar belakang abu-abu untuk kotak nomor
+              borderRadius: BorderRadius.circular(
+                  15.0), // Sudut melengkung pada kotak nomor
+            ),
+            constraints: const BoxConstraints(
+              maxWidth: 150, // Lebar maksimal box
+              maxHeight: 120, // Tinggi maksimal box
+            ),
+            child: Center(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 50, // Ukuran font terbesar untuk nomor loker
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFF0620C2),
-            ),
-            height: MediaQuery.of(context).size.height,
-          ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: Container(
-              margin: const EdgeInsets.only(top: 25),
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.15,
-              decoration: BoxDecoration(
-                image: const DecorationImage(
-                  image: AssetImage('assets/bg_atas.png'),
-                  fit: BoxFit.cover,
+          Stack(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFF0620C2), // Warna pertama
+                      Color(0xFF030F5C), // Warna kedua
+                    ],
+                  ),
                 ),
-                color: Colors.white.withOpacity(0.3),
+                height: MediaQuery.of(context).size.height,
               ),
-            ),
+              Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 1.5), // Jarak dari atas
+                    child: Opacity(
+                      opacity: 0.3, // Setel opasitas di sini, bisa disesuaikan
+                      child: Image.asset(
+                        'assets/x_camp_logo.png', // Ganti dengan path gambar Anda
+                        height: 135.0, // Atur tinggi gambar sesuai keinginan
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  // Tambahkan widget lain di sini jika diperlukan
+                ],
+              ),
+            ],
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.84,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
+          Stack(
+            children: [
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.height * 0.85,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              Positioned(
+                top: 110, // Adjust as needed
+                left: 125, // Adjust as needed
+                // right: 20, // Adjust as needed
+                child: Container(
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'King Salman bin Khaleed',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Colors
+                          .white, // Changed to black for visibility on white background
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           Positioned(
             top: 30,
@@ -242,9 +315,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Positioned(
-            top: 52,
-            left: 38,
-            right: 30,
+            top: 90,
+            left: 70,
+            // right: 30,
             child: Row(
               children: [
                 Container(
@@ -270,20 +343,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'King Salman bin Khaleed',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 0),
-                  ],
-                ),
               ],
             ),
           ),
@@ -364,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               child: Center(
                                 child: Text(
-                                  _isClicked[index] ? 'Terisi' : 'Kosong',
+                                  _isClicked[index] ? 'Lock' : 'Unlock',
                                   style: TextStyle(
                                     color: _isClicked[index]
                                         ? const Color(0xFFC20606)
