@@ -37,7 +37,7 @@ flutter:
 
   assets:
     - assets/x_camp_logo.png
-    - assets/profile_image.png
+    - assets/profile_image.jpg
     - assets/x_camp_splashscreen.png
     - assets/teks_smartlocker.png
     - assets/bg_atas.png

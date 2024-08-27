@@ -323,7 +323,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 57,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: const Color(0xFF0620C2), // Warna stroke (border)
@@ -337,9 +336,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                     image: const DecorationImage(
-                      image: NetworkImage(
-                        'https://your-image-url.com', // Ganti dengan URL image profile
-                      ),
+                      image: AssetImage(
+                          'assets/profile_image.jpg'), // Ganti dengan path asset image
                       fit: BoxFit.cover,
                     ),
                   ),
