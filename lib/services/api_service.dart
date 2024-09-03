@@ -36,7 +36,7 @@ class ApiService {
     }
 
     final response = await http.post(
-      Uri.parse('$baseUrl/rpc/oneway/1295bb70-1332-11ef-ba49-7338e27601c4'),
+      Uri.parse('$baseUrl/rpc/oneway/.....'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ class ApiService {
     }
 
     final response = await http.get(
-      Uri.parse('$baseUrl/plugins/telemetry/DEVICE/1295bb70-1332-11ef-ba49-7338e27601c4/values/timeseries'),
+      Uri.parse('$baseUrl/plugins/telemetry/DEVICE/...../values/timeseries'),
       headers: {
         'Authorization': 'Bearer $token',
       },
